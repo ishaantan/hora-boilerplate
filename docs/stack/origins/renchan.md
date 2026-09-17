@@ -21,7 +21,7 @@ git ls-remote --tags --sort=-v:refname \
 
 The boilerplate leaves `package.json`'s `version` at `0.0.0` and manages the real version through git tags; its `release.yml` checks a derived version against the tags already pushed, never against `package.json`. **The tag is what carries the version.**
 
-**The repository is currently private**, so a non-interactive session's own `git clone` fails for lack of credentials until a human clones the directory beforehand. A directory that already exists is treated as already fetched, however it got there.
+**The repository is public**, so a session fetches it without credentials. A directory that already exists is treated as already fetched, however it got there.
 
 ### The stack, roughly
 

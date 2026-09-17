@@ -14,7 +14,7 @@ https://github.com/openreachtech/furo-boilerplate-nuxt.git
 
 **Fetch the newest tag, never the HEAD of `main`** — the same rule, for the same reason, as [`renchan.md`](./renchan.md): the tag is what carries the version.
 
-**The repository is currently private**, so a non-interactive session's own `git clone` fails for lack of credentials until a human clones the directory beforehand. A directory that already exists is treated as already fetched, however it got there.
+**The repository is public**, so a session fetches it without credentials. A directory that already exists is treated as already fetched, however it got there.
 
 **Rows with origin `furo` are often more than one.** One repository holds one Nuxt app, so repositories split along groups of screens — clone one per declared row.
 
