@@ -4,6 +4,8 @@
 
 A template repository for building an application from a spec, driven by the `/hora` Claude Code skill.
 
+**This one builds a web application.** A native Android or iOS one starts from [`hora-boilerplate-mobile`](https://github.com/openreachtech/hora-boilerplate-mobile) instead, which runs the same method over Kotlin and Swift rows.
+
 ## Concept
 
 A project built from this template is made of several git repositories, nested inside one another. The outer repository (this one, cloned as `<myproject>-app`) holds the spec and the `/hora` skill; it holds no application code of its own. `/hora` clones the backend and frontend repositories inside it from `renchan-boilerplate` and `furo-boilerplate-nuxt`, reads the spec, and implements the application.

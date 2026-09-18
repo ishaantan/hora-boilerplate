@@ -4,6 +4,8 @@
 
 `/hora` という Claude Code skill が仕様書からアプリケーションを実装する、テンプレートリポジトリです。
 
+**こちらが作るのは Web アプリケーションです。** ネイティブの Android / iOS は代わりに [`hora-boilerplate-mobile`](https://github.com/openreachtech/hora-boilerplate-mobile) から始めます。同じ手法を Kotlin と Swift の行に対して走らせます。
+
 ## コンセプト
 
 このテンプレートから作るプロジェクトは、複数の git リポジトリが入れ子になった構成を取ります。外側のリポジトリ（このリポジトリ。`<myproject>-app` として clone する）が仕様書と `/hora` skill を持ち、アプリケーションの実装コードは持ちません。`/hora` が `renchan-boilerplate` と `furo-boilerplate-nuxt` から backend / frontend のリポジトリをその内側に clone し、仕様書を読んで実装します。
