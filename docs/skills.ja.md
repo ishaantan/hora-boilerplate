@@ -10,45 +10,21 @@ Hora Kit が持っているのは順序と関所です。**手順と合否基準
 
 ---
 
-## 目次
-
-- [なぜ Hora Kit は手順を持たないのか](#なぜ-hora-kit-は手順を持たないのか)
-- [スキルがセッションに届くまで](#スキルがセッションに届くまで)
-- [hora のファイルは、これらのスキル名を書きません](#hora-のファイルはこれらのスキル名を書きません)
-- [これらのパッケージが覆っている範囲](#これらのパッケージが覆っている範囲)
-- [Hora Kit が最も強く寄りかかっているもの](#hora-kit-が最も強く寄りかかっているもの)
-- [その作業を扱うものが無いとき](#その作業を扱うものが無いとき)
-- [次に読むもの](#次に読むもの)
-
----
-
 ## なぜ Hora Kit は手順を持たないのか
 
-同じ規約を書いた文書が2つあれば、必ず食い違います。**問題は「いつ」と「誰かが気づくか」だけです。**
-
-```
-hora-skills-ort-* 「stub resolver は server/graphql/resolvers/<audience>/stub/ に置く」
-                       │
-                       │  パッケージが更新される。パスが変わる。
-                       ▼
-Hora Kit          「stub resolver は server/graphql/resolvers/<audience>/stub/ に置く」
-                       ↑
-                  そのまま、自信満々のまま、間違いになる
-```
-
-**写しは、自分が古くなったことを知らせません。** 書かれた日と寸分違わず権威ある文面のままで、それに従ったエージェントは**自信をもって間違った場所に**成果物を置きます。
+同じ規約を書いた文書が2つあれば、必ず食い違います。問題は「いつ」と「誰かが気づくか」だけです。パッケージがパスを変えても、キット側の写しはそのまま、自信満々のまま、間違いになります。**写しは、自分が古くなったことを知らせません。** 書かれた日と寸分違わず権威ある文面のままで、それに従ったエージェントは**自信をもって間違った場所に**成果物を置きます。
 
 したがって Hora Kit の規則は絶対です。
 
 > **`hora-skills-ort-*` パッケージのスキルが既に持っている手順・規約・合否基準を、hora skill 側に書いてはならない。「何をする作業か」を書いて委譲すること。**
 
-これは `/hora-setup` が boilerplate に対して既に採っている考え方と同じです：**実物を読め。今そう書いてあることを焼き込むな。** ここでの実物はパッケージです。
+これは `/hn-setup` が boilerplate に対して既に採っている考え方と同じです：**実物を読め。今そう書いてあることを焼き込むな。** ここでの実物はパッケージです。
 
 ### それぞれが所有するもの
 
 | | 所有するもの | 例 |
 |---|---|---|
-| **Hora Kit** | 何がいつ起きるか。次に進む前に何が真でなければならないか | *「関所4は、この機能が足す全操作にスキーマ準拠の stub が存在したら通過」* |
+| **Hora Kit** | 何がいつ起きるか。次に進む前に何が真でなければならないか | *「関所3は、他の機能が待っている全操作にスキーマ準拠の stub が存在したら通過」* |
 | **`hora-skills-ort-*` パッケージ** | どうやるか。何をもって「ちゃんとできた」か | *「stub は `stub/{queries,mutations}/` に置き、スキーマを写し、DB アクセスを持たず、実装 resolver とクラス名を共有する」* |
 
 **2つの文は重なりません。** それが判定基準です — Hora Kit のある行が、パッケージと突き合わせて「食い違っている」と判定できてしまうなら、その行は Hora Kit にあるべきではありません。
@@ -57,50 +33,40 @@ Hora Kit          「stub resolver は server/graphql/resolvers/<audience>/stub/
 
 ## スキルがセッションに届くまで
 
-Claude Code がスキルを見つけるのは、セッション自身の `.claude/skills/` だけです。パッケージのスキルは `node_modules/` にあり、そこはその場所ではありません。**コピーする手順が無ければ、パッケージが配るものは全部見えないままです。**
+Claude Code がスキルを見つけるのは、セッション自身の `.claude/skills/` だけです。スキルと agent は `kit/skills/` と `kit/agents/` にあり、そこはその場所ではありません。**コピーする手順が無ければ、ここにあるものは全部見えないままです。**
 
 `npm install` が、このリポジトリ自身の `postinstall` を通してそのコピーを実行します。
 
 ```json
-"hora:init": "hora-core install && hora-skills-ort-core install && hora-skills-ort-renchan install && hora-skills-ort-furo install && hora-skills-ort-support install && node kit/scripts/equip-own-skills.mjs",
+"hora:init": "node kit/scripts/equip-own-skills.mjs",
 "postinstall": "npm run hora:init"
 ```
 
 ```
-node_modules/@openreachtech/hora/dist/agents/<agent>.md   ─>  .claude/agents/<agent>.md
-node_modules/@openreachtech/hora/dist/skills/<skill>/     ─>  .claude/skills/<skill>/
-node_modules/@openreachtech/hora-skills-ort-core/dist/skills/<skill>/     ─>  .claude/skills/<skill>/
-node_modules/@openreachtech/hora-skills-ort-renchan/dist/skills/<skill>/  ─>  .claude/skills/<skill>/
-node_modules/@openreachtech/hora-skills-ort-furo/dist/skills/<skill>/     ─>  .claude/skills/<skill>/
-node_modules/@openreachtech/hora-skills-ort-support/dist/skills/<skill>/  ─>  .claude/skills/<skill>/
-                          そのままコピー。改名も書き換えもしない
+kit/agents/<agent>.md  ─>  .claude/agents/<agent>.md
+kit/skills/<skill>/    ─>  .claude/skills/<skill>/
+              そのままコピー。改名も書き換えもしない
 ```
 
-- パッケージ4つ、ペイロード2種、行き先は1つ。 `@openreachtech/hora` が hora の skill と agent を運び（`/hora` 自身もその1つです）、4つの `hora-skills-ort-*` パッケージがそれらの委譲先である手順を、ドメインごとに1パッケージずつ運びます。いずれも平坦な1つの `.claude/skills/` に並んで着地します。`hoc-`/`hor-`/`hof-`/`hos-` の接頭辞はそのためにあります
-- **`npm install` だけで足ります。** 引数なしの `npm install` はフックを再実行するので、更新されたパッケージも追随します。コマンドラインでパッケージを名指しした場合は再実行されないため、そのときは `npm run hora:init` で配り直します
-- **各コマンドは再実行可能です。** 自分の前回の実行が入れたもの（`hora-core` は `.hora/equip-core.json`、4つのスキルパッケージはそれぞれ `.hora/<パッケージ名>.json` に記録）と、自分が配る名前を持つものを先に削除してから、新しくコピーします。パッケージが改名・削除したスキルは残留せず、このリポジトリが自分で書いたスキルには触れません
-- **リポジトリの clone を待ちません。** 4つのパッケージはいずれもこのリポジトリ自身の devDependencies なので、ここで `npm install` が済んでいれば使えます
-- **コピーは gitignore 済みで、ルートの lint からも除外されています。** どちらも `.claude/agents/` と `.claude/skills/` の全体を無視する形で、名前パターンは使いません（理由は後述）。名指しで戻すものは1つもありません。このリポジトリが自分で書く唯一の skill は `kit/skills/` にあり、フックがそのコピーを他と同じようにここへ配置するからです。生成物であって、ここで書いたものではありません
+- **これらは vendor されたものであり、インストールされたものではありません。** スキルと agent は `@openreachtech/hora` と4つの `@openreachtech/hora-skills-ort-*` パッケージから取り込み、いまはソースとしてここに置かれています。それらのパッケージは `devDependencies` から外れました。取得も、このリポジトリとは別の版管理もありません。`/hn-*` という名前はこのリポジトリのものです
+- **その代償は upstream です。** それらのパッケージで修正が出ても、範囲を上げれば届く、ということはもうありません。持ってくるのは意図的な作業であり、しかも相手は既に改名された木です
+- **`npm install` だけで足ります。** 配り直したいときは `npm run hora:init` です
+- **コピーは再実行可能です。** 行き先の2つのディレクトリはコピー前に空にされるので、`kit/` で改名・削除されたスキルが候補として残留することはありません
+- **コピーは gitignore 済みで、ルートの lint からも除外されています。** ソースを持つのは `kit/` で、`.claude/` の下は誰が書いたものであれ生成物です
 
-配置されるのはこの4つで、もう1つは置かれた場所のまま読まれます。 **`@openreachtech/hora-ecosystem`** — 同じくこのリポジトリの devDependency で、関所5が「新しく書く前に」確認する社内パッケージのカタログです。どこにも配置されず、`node_modules/` の中でそのまま読まれます。レイアウトはパッケージ自身が自由に変えるものです（[`checkpoints.md`](https://github.com/openreachtech/hora-core/blob/main/kit/skills/hora-build/references/checkpoints.md) の関所5）。
+`kit/` の下に1つ、配置されるのではなく読まれるものがあります。 **`kit/ecosystem/`** — vendor 済みの `@openreachtech/hora-ecosystem` で、関所5が「新しく書く前に」確認する社内パッケージのカタログです。どのセッションディレクトリにもコピーされず、その場で読まれます。レイアウトはカタログ自身が自由に変えるものです（[`checkpoints.md`](../kit/skills/hn-build/references/checkpoints.md) の関所5）。
+
+**`kit/eslint/` も同じく vendor です** — 共有の `@openreachtech/eslint-config` とその下の3つのルールパッケージで、ルートの `eslint.config.js` が相対パスで読み込みます。何も配置せず、どのスキルも読みません。`@openreachtech/*` をレジストリから一切解決しないために置いてあります。
 
 ---
 
 ## hora のファイルは、これらのスキル名を書きません
 
-[`checkpoints.md`](https://github.com/openreachtech/hora-core/blob/main/kit/skills/hora-build/references/checkpoints.md) も、[`stages.md`](https://github.com/openreachtech/hora-core/blob/main/kit/skills/hora-spec/references/stages.md) も、エージェント定義も、このページも書きません。**スキル名はパッケージのものであり、パッケージはそれを自由に変えられます** — そして書き留められた名前は、**静かに壊れる唯一の種類の写し**です。
+[`checkpoints.md`](../kit/skills/hn-build/references/checkpoints.md) も、[`stages.md`](../kit/skills/hn-spec/references/stages.md) も、エージェント定義も、このページも書きません。**スキル名はパッケージのものであり、パッケージはそれを自由に変えられます** — そして書き留められた名前は、**静かに壊れる唯一の種類の写し**です。
 
-```
-パッケージがスキルを改名する
-       │
-       ▼
-Hora Kit    「<かつての名前> に委譲せよ」
-       ↑
-  何にもマッチしない。関所は規約無しで走り、
-  そして「通過した」と報告する
-```
+スキルが改名されると、キットは何にもマッチしない名前に委譲し続けます。関所は規約無しで走り、そして「通過した」と報告します。
 
-**古くなった手順は、両方を読んだ人が現れた瞬間に実物と食い違います。古くなった名前は、何とも食い違いません。** ただ解決しなくなるだけで、Hora Kit が持つ「スキルが見つからない」報告の仕組みは、そのとき飛ばされた規約を**合格した実行の下の注釈1行**に変えてしまいます。失敗が静かであってはならない、まさにその場所です。
+**古くなった手順は、両方を読んだ人が現れた瞬間に実物と食い違います。古くなった名前は、何とも食い違いません** — ただ解決しなくなるだけで、飛ばされた規約は**合格した実行の下の注釈1行**になります。
 
 そこで、対応付けは実行時に、実際に配備されているものに対して行います。
 
@@ -117,7 +83,7 @@ Hora Kit    「<かつての名前> に委譲せよ」
 本体セッションは配備済みスキルの description を自分の文脈として渡されるので、**突き合わせができ、かつ書き留められる**唯一の場所です。選んだものはこう残ります。
 
 ```markdown
-- [x] 15. UI  <!-- skills: <マッチした名前すべて>; digests: <パッケージバージョン> -->
+- [x] 15. UI  <!-- skills: <マッチした名前すべて>; digests: <コンテンツハッシュ> -->
                                                        ← .hora/tasks/<version>/<feature-id>.md
 | review | <マッチした名前> | 2 findings |              ← .hora/acceptance/<version>/...
 ```
@@ -126,13 +92,13 @@ Hora Kit    「<かつての名前> に委譲せよ」
 
 ### エージェントに届くのはスキル本体ではなく、そのダイジェストです
 
-**マッチしたスキルは数千行に及び、それを読むエージェントのターン全部で常駐し続けます。** 関所のコストは常駐サイズとターン数の積に近いので、`/hora-build` が implementer に渡すのは `.hora/digests/<skill-name>.md` — 同じ規約を短くしたもので、マッチしたスキルにインストール済みバージョンのダイジェストが無ければ、そのとき [`hora-digester`](https://github.com/openreachtech/hora-core/blob/main/kit/agents/hora-digester.md) が書きます。上の記録が名前と並べて由来バージョンを残しているのは、そのためです。
+**マッチしたスキルは数千行に及び、それを読むエージェントのターン全部で常駐し続けます。** 関所のコストは常駐サイズとターン数の積に近いので、`/hn-build` が implementer に渡すのは `.hora/digests/<skill-name>.md` — 同じ規約を短くしたもので、マッチしたスキルに現在のコンテンツハッシュのダイジェストが無ければ、そのとき [`hn-digester`](../kit/agents/hn-digester.md) が書きます。上の記録が名前と並べて由来ハッシュを残しているのは、そのためです。
 
-**ダイジェストは写しであり、このページ冒頭の規則が認める唯一の写しです。** 写しが危険なのは、静かに古びるからです。ダイジェストは由来したパッケージバージョンを自分のヘッダに持つので、そのバージョンがインストールされている間しか読まれず、パッケージが更新されれば、次に読まれる前に全部が書き直されます。エージェントの常駐量を減らすだけで、何も決めません。
+**ダイジェストは写しであり、このページ冒頭の規則が認める唯一の写しです** — 静かに古びることができないからです。`kit/skills/<skill-name>/` の sha256 を自分のヘッダに持つので、そのハッシュがディスク上のスキルと一致する間しか読まれず、スキルを編集すれば、次に読まれる前にそのダイジェストが書き直されます — コミットしていない編集も含みます。スキルは vendor されていてリリース番号を持たないので、ハッシュがかつてのバージョン番号の役目を果たし、しかも捕らえる範囲は広くなっています。エージェントの常駐量を減らすだけで、何も決めません。
 
-**両者が食い違ったとき決めるのは、スキル本体の文面です。** ダイジェストは出典ファイルを名指ししていて、疑問が残った時点でエージェントはそのファイルを開きます — 記述が薄いとき、そこを見ろと書かれているとき、これから書くものがダイジェストの説明そのものだと言い切れないとき。だから短く書きすぎた規約のコストは「1回の読み込み」であって、規約が失われることではありません。
+**両者が食い違ったとき決めるのは、スキル本体の文面です。** ダイジェストは出典ファイルを名指ししていて、疑問が残った時点でエージェントはそのファイルを開きます。短く書きすぎた規約のコストは「1回の読み込み」であって、規約が失われることではありません。
 
-**スキルそのものが合否基準である工程は、この経路を通りません。** 関所8のセキュリティ監査と検収レビューはスキルを丸ごと invoke します。コードを書くエージェントには「短い版では足りない」と気づく瞬間がありますが、監査にはそれが無いからです — 抜けている検査は、誰も尋ねようと思いつかない検査です。**要約された検査リストは短い検査リストであり、そして合格を報告します。**（[`structure.md`](https://github.com/openreachtech/hora-core/blob/main/kit/skills/hora/references/structure.md)「How the match is made」）
+**スキルそのものが合否基準である工程は、この経路を通りません。** 関所8のセキュリティ監査と検収レビューはスキルを丸ごと invoke します。コードを書くエージェントには「短い版では足りない」と気づく瞬間がありますが、監査にはそれが無いからです — 抜けている検査は、誰も尋ねようと思いつかない検査です。**要約された検査リストは短い検査リストであり、そして合格を報告します。**（[`structure.md`](../kit/skills/hn/references/structure.md)「How the match is made」）
 
 ### 名前のうち読む価値があるのは接頭辞だけです
 
@@ -161,7 +127,7 @@ Hora Kit    「<かつての名前> に委譲せよ」
 ls .claude/skills/
 ```
 
-そして「関所 → 委譲するスキル」の権威ある対応は [`checkpoints.md`](https://github.com/openreachtech/hora-core/blob/main/kit/skills/hora-build/references/checkpoints.md)、「仕様ステージ → 委譲するスキル」は [`stages.md`](https://github.com/openreachtech/hora-core/blob/main/kit/skills/hora-spec/references/stages.md) です。**どちらも意図的にここには再掲しません** — あの表の2つ目の写しは、まさにこのドキュメント全体が扱っている食い違いそのものになります。
+そして「関所 → 委譲するスキル」の権威ある対応は [`checkpoints.md`](../kit/skills/hn-build/references/checkpoints.md)、「仕様ステージ → 委譲するスキル」は [`stages.md`](../kit/skills/hn-spec/references/stages.md) です。**どちらも意図的にここには再掲しません** — あの表の2つ目の写しは、まさにこのドキュメント全体が扱っている食い違いそのものになります。
 
 ### `hor-` — バックエンド（renchan）
 
@@ -217,10 +183,10 @@ ls .claude/skills/
 
 | 作業 | 関所 | なぜ設計を形づくっているか |
 |---|---|---|
-| **stub API を書くこと** | **4** | フロントエンドゲートが本物の API を待たない理由。stub は実装 resolver とクラス名・interface を共有するので、関所16 は書き直しではなくエンドポイントの切り替えになる |
+| **stub API を書くこと** | **3** | ある機能のフロントエンドが、別の機能のバックエンドを待たずに済む仕組み。実際に待っている依存先があるときだけ該当し、stub は実装 resolver とクラス名・interface を共有するので、関所15 は書き直しではなくエンドポイントの切り替えになる |
 | **セキュリティ監査** | **8** | 設計上 read-only。だからこの関所は **verifier エージェント**で走る。見つけることと直すことは別の行為 |
 | **ローカル E2E 環境の構築** | **17** | これ無しに検収は成立しない。だから 18 の中の一手順ではなく、独立した関所になっている |
-| **受入レビュー** | **18** | 検収の合否基準はすべてここにある。`/hora-accept` が足すのは対象範囲・順序・記録だけ |
+| **受入レビュー** | **18** | 検収の合否基準はすべてここにある。`/hn-accept` が足すのは対象範囲・順序・記録だけ |
 
 3つがそれに次ぎます。**要件定義**は関所1を支え、**共有 UI/UX コンテキスト**は UI 生成器と UI 監査の両方が読むファイルを作り、**テスト実行**は「落ちているスイート」がテストを緩めることで直されない理由です。
 
@@ -237,7 +203,7 @@ description で突き合わせることは、改名の問題を消しますが�
 | 誰も扱っていない作業 | **名前ではなく作業で報告する。** 規約無しで走った関所は、何とも突き合わせていない成果物を生んでいます |
 | 欠けた手順をその場で作る | **駄目です。** それは写し問題を、元より雑に、新規に作り直す行為です |
 | 語感が近いスキルで代用する | **駄目です。** description で突き合わせるのは、まさにそれを防ぐためです。惜しい取り違えは、欠落より悪い —「合格」を報告してしまうからです |
-| `/hora-accept` | その実行の記録に欠落として残します。**手順が欠けた実行は「注釈付きの合格」ではありません** — 部分的な実行であり、記録がそう言わなければなりません |
+| `/hn-accept` | その実行の記録に欠落として残します。**手順が欠けた実行は「注釈付きの合格」ではありません** — 部分的な実行であり、記録がそう言わなければなりません |
 
 **見るべき兆候は、マッチ数の減少です。** 毎回マッチしたものを記録しているので、以前は5つマッチしていた関所が3つになれば、それが差分として現れます。書き留められた名前には決してできなかったことです。
 
@@ -247,7 +213,7 @@ description で突き合わせることは、改名の問題を消しますが�
 
 | | |
 |---|---|
-| 各関所が何の作業を委譲するかの権威 | [`checkpoints.md`](https://github.com/openreachtech/hora-core/blob/main/kit/skills/hora-build/references/checkpoints.md) |
-| 境界の規則としての記述 | [`structure.md`](https://github.com/openreachtech/hora-core/blob/main/kit/skills/hora/references/structure.md) の "The division of labor" と "No hora file ever names one of those skills" |
+| 各関所が何の作業を委譲するかの権威 | [`checkpoints.md`](../kit/skills/hn-build/references/checkpoints.md) |
+| 境界の規則としての記述 | [`structure.md`](../kit/skills/hn/references/structure.md) の "The division of labor" と "No hora file ever names one of those skills" |
 | なぜこの設計なのか | [`architecture.ja.md`](./architecture.ja.md) |
 | 各コマンドが何をしているか | `hora-core` の [`commands.ja.md`](https://github.com/openreachtech/hora-core/blob/main/docs/commands.ja.md) |
