@@ -1,18 +1,18 @@
 /**
- * Equip the skills this repository authors itself.
+ * Equip the skills and agents this repository holds.
  *
- * The packages equip theirs from `node_modules/`, and this places the ones written
- * here — `kit/skills/<name>/` copied to `.claude/skills/<name>/`, name for name. It runs
- * last in `hora:init`, after every package has installed, so a skill this repository
- * authors wins over a package's skill of the same name. That is what carries a skill
- * through the release where the package it used to ship in stops shipping it.
+ * Everything under `kit/skills/` and `kit/agents/` is copied into `.claude/skills/`
+ * and `.claude/agents/`, name for name. Both payloads are vendored here rather than
+ * installed from a package, so this script is the whole of `hora:init` — nothing
+ * else places anything into `.claude/`.
  *
- * The destination is emptied before the copy, the way a package's own install does it:
- * a file dropped from the source would otherwise stay behind in an installation that
- * reports success, and nothing would say so.
+ * The destination is emptied before the copy. `kit/` is the only source there is, so
+ * anything standing there that this run does not place is stale — a skill renamed or
+ * dropped would otherwise linger in an installation that reports success, and nothing
+ * would say so.
  *
- * `.claude/` is generated, never authored — `kit/skills/` is where the source lives, and
- * the copy is gitignored along with everything else the hook places.
+ * `.claude/` is generated, never authored — `kit/` is where the source lives, and the
+ * copy is gitignored along with everything else the hook places.
  *
  * Usage: `node kit/scripts/equip-own-skills.mjs`
  */
@@ -21,76 +21,118 @@ import fs from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 
-const SOURCE_DIR = path.join('kit', 'skills')
-const TARGET_DIR = path.join('.claude', 'skills')
+const PAYLOADS = [
+  {
+    label: 'skill',
+    sourceDir: path.join('kit', 'skills'),
+    targetDir: path.join('.claude', 'skills'),
+  },
+  {
+    label: 'agent',
+    sourceDir: path.join('kit', 'agents'),
+    targetDir: path.join('.claude', 'agents'),
+  },
+]
 
 /**
- * Collect the name of every skill this repository authors.
+ * Collect the name of every entry one payload holds.
  *
- * @returns {Array<string>} Directory names under `kit/skills/`, empty when there are none.
+ * @param {{
+ *   sourceDir: string
+ * }} params - Parameters.
+ * @returns {Array<string>} Entry names under the source directory, empty when there are none.
  */
-function collectSkillNames () {
-  if (!fs.existsSync(SOURCE_DIR)) {
+function collectEntryNames ({
+  sourceDir,
+}) {
+  if (!fs.existsSync(sourceDir)) {
     return []
   }
 
-  return fs.readdirSync(SOURCE_DIR, { withFileTypes: true })
-    .filter(entry => entry.isDirectory())
-    .map(entry => entry.name)
+  return fs.readdirSync(sourceDir)
     .toSorted()
 }
 
 /**
- * Place one skill, replacing whatever stands at its destination.
+ * Place one entry at its destination.
  *
  * @param {{
- *   skillName: string
+ *   entryName: string
+ *   sourceDir: string
+ *   targetDir: string
  * }} params - Parameters.
  * @returns {void}
  */
-function equipSkill ({
-  skillName,
+function equipEntry ({
+  entryName,
+  sourceDir,
+  targetDir,
 }) {
-  const source = path.join(SOURCE_DIR, skillName)
-  const target = path.join(TARGET_DIR, skillName)
-
-  fs.rmSync(target, {
-    recursive: true,
-    force: true,
-  })
-
-  fs.cpSync(source, target, {
-    recursive: true,
-  })
+  fs.cpSync(
+    path.join(sourceDir, entryName),
+    path.join(targetDir, entryName),
+    {
+      recursive: true,
+    }
+  )
 }
 
 /**
- * Place every skill this repository authors.
+ * Place every entry of one payload.
  *
- * @returns {number} Number of skills placed.
+ * @param {{
+ *   label: string
+ *   sourceDir: string
+ *   targetDir: string
+ * }} params - Parameters.
+ * @returns {number} Number of entries placed.
  */
-function main () {
-  const skillNames = collectSkillNames()
+function equipPayload ({
+  label,
+  sourceDir,
+  targetDir,
+}) {
+  const entryNames = collectEntryNames({
+    sourceDir,
+  })
 
-  if (skillNames.length === 0) {
-    process.stdout.write('no skill of this repository to equip\n')
+  if (entryNames.length === 0) {
+    process.stdout.write(`no ${label} to equip\n`)
 
     return 0
   }
 
-  fs.mkdirSync(TARGET_DIR, {
+  fs.rmSync(targetDir, {
+    recursive: true,
+    force: true,
+  })
+
+  fs.mkdirSync(targetDir, {
     recursive: true,
   })
 
-  skillNames.forEach(skillName => {
-    equipSkill({
-      skillName,
+  entryNames.forEach(entryName => {
+    equipEntry({
+      entryName,
+      sourceDir,
+      targetDir,
     })
   })
 
-  process.stdout.write(`equipped ${skillNames.length} skill(s) of this repository: ${skillNames.join(', ')}\n`)
+  process.stdout.write(`equipped ${entryNames.length} ${label}(s) into ${targetDir}\n`)
 
-  return skillNames.length
+  return entryNames.length
+}
+
+/**
+ * Place every payload this repository holds.
+ *
+ * @returns {number} Number of entries placed.
+ */
+function main () {
+  return PAYLOADS
+    .map(payload => equipPayload(payload))
+    .reduce((total, count) => total + count, 0)
 }
 
 main()

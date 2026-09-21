@@ -30,12 +30,12 @@ node_modules/
 id_rsa
 id_ed25519
 
-#### implementation repositories, fetched or adopted by /hora-setup
+#### implementation repositories, fetched or adopted by /hn-setup
 /*-backend*/
 /*-frontend*/
 
 # A repository adopted under its own directory name matches neither pattern
-# above, so /hora-setup appends one literal entry per declared `Directory`
+# above, so /hn-setup appends one literal entry per declared `Directory`
 # here. Left out, the whole repository gets committed into this one, and
 # nothing says so until somebody reads `git status`.
 
@@ -47,29 +47,18 @@ id_ed25519
 # and committing it hands everyone else a set of allowances they never granted.
 /.claude/settings.local.json
 
-#### the kit equipped by postinstall, from @openreachtech/hora and the four
-#### @openreachtech/hora-skills-ort-* packages (regenerated, not authored here)
+#### the kit equipped by postinstall, copied from kit/ (regenerated, not authored here)
 #
-# Ignore the contents of both payload directories rather than matching on a
-# name. What the packages distribute changes with every release, so a pattern
-# written against today's names goes stale without saying so — and a denylist
-# that stops matching says nothing when it stops: every equipped entry would
-# simply start being committed here. Ignoring whole cannot fail that way.
-# Nothing has to be named back in: the one skill this repository authors is
-# kept at kit/skills/, and the hook places a copy of it here like any other —
-# so everything under .claude/ is generated, whoever wrote it.
+# The skills and agents themselves are tracked, at kit/skills/ and kit/agents/.
+# What postinstall writes into .claude/ is a copy of them, so committing it would
+# commit every one of them twice and let the two drift apart.
+#
+# Ignore the contents of both payload directories rather than matching on a name.
+# A pattern written against today's names goes stale without saying so — and a
+# denylist that stops matching says nothing when it stops: every equipped entry
+# would simply start being committed here. Ignoring whole cannot fail that way.
 /.claude/agents/*
 /.claude/skills/*
-
-# The five equip manifests, written by the install commands — one per package,
-# each named after the package that writes it. These are the only entries under
-# .hora/ that are ignored: everything else there is the run's own record, and
-# `git log .hora/` is the history of what ran.
-/.hora/equip-core.json
-/.hora/hora-skills-ort-core.json
-/.hora/hora-skills-ort-furo.json
-/.hora/hora-skills-ort-renchan.json
-/.hora/hora-skills-ort-support.json
 
 #### for Windows
 Thumbs.db

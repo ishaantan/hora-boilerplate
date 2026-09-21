@@ -4,7 +4,7 @@
 
 *[日本語](./renchan.ja.md)*
 
-What `/hora-setup` needs to know to create and initialize a repository whose declared origin is `renchan`. The git handling itself — fetching the newest tag, discarding history, which branch the repository starts on — is the kit's own and is not restated here.
+What `/hn-setup` needs to know to create and initialize a repository whose declared origin is `renchan`. The git handling itself — fetching the newest tag, discarding history, which branch the repository starts on — is the kit's own and is not restated here.
 
 ## Where it comes from
 

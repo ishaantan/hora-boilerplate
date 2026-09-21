@@ -2,15 +2,15 @@
 
 *[English](https://github.com/openreachtech/hora-boilerplate/blob/main/README.md)*
 
-`/hora` という Claude Code skill が仕様書からアプリケーションを実装する、テンプレートリポジトリです。
+`/hn` という Claude Code skill が仕様書からアプリケーションを実装する、テンプレートリポジトリです。
 
 **こちらが作るのは Web アプリケーションです。** ネイティブの Android / iOS は代わりに [`hora-boilerplate-mobile`](https://github.com/openreachtech/hora-boilerplate-mobile) から始めます。同じ手法を Kotlin と Swift の行に対して走らせます。
 
 ## コンセプト
 
-このテンプレートから作るプロジェクトは、複数の git リポジトリが入れ子になった構成を取ります。外側のリポジトリ（このリポジトリ。`<myproject>-app` として clone する）が仕様書と `/hora` skill を持ち、アプリケーションの実装コードは持ちません。`/hora` が `renchan-boilerplate` と `furo-boilerplate-nuxt` から backend / frontend のリポジトリをその内側に clone し、仕様書を読んで実装します。
+このテンプレートから作るプロジェクトは、複数の git リポジトリが入れ子になった構成を取ります。外側のリポジトリ（このリポジトリ。`<myproject>-app` として clone する）が仕様書と `/hn` skill を持ち、アプリケーションの実装コードは持ちません。`/hn` が `renchan-boilerplate` と `furo-boilerplate-nuxt` から backend / frontend のリポジトリをその内側に clone し、仕様書を読んで実装します。
 
-`/hora` は再入可能です。実行のたびに前回どこまで進んだかを判定し、続きから進めます。仕様書に決まっていないことがあれば、そこで止まって尋ねます。1回の実行でプロジェクトが完成する前提ではなく、何度でも開始・再開されることを前提にしています。
+`/hn` は再入可能です。実行のたびに前回どこまで進んだかを判定し、続きから進めます。仕様書に決まっていないことがあれば、そこで止まって尋ねます。1回の実行でプロジェクトが完成する前提ではなく、何度でも開始・再開されることを前提にしています。
 
 **進め方はレイヤ単位ではなく機能単位です。** 1つの機能を18のチェックポイント（仕様 → バックエンド → フロントエンド → 検収）で通し切ってから、次の機能に進みます。これが避けているのは「バックエンドを全部作り、フロントエンドを全部作り、最後にテストする」という順序です。その順序では、ある機能が動くかどうかが分かるのは全部書き終えた後になります。
 
@@ -18,7 +18,7 @@
 
 ## 始め方
 
-**以下の3つの手順を1ページにまとめたクイックスタート**が `hora-core` の [`quick-start.ja.md`](https://github.com/openreachtech/hora-core/blob/main/docs/quick-start.ja.md) です。やりたいことを `specs/1.0.0/request/` に、関連資料を `specs/1.0.0/annex/` に入れれば、`/hora` がそれを材料に仕様書をあなたと書きます。
+**以下の3つの手順を1ページにまとめたクイックスタート**が `hora-core` の [`quick-start.ja.md`](https://github.com/openreachtech/hora-core/blob/main/docs/quick-start.ja.md) です。やりたいことを `specs/1.0.0/request/` に、関連資料を `specs/1.0.0/annex/` に入れれば、`/hn` がそれを材料に仕様書をあなたと書きます。
 
 新規ではなく、既存の renchan / furo プロジェクトに適用する場合は `hora-core` の [`adopting.ja.md`](https://github.com/openreachtech/hora-core/blob/main/docs/adopting.ja.md) へ。手順1から異なり、最初に決めるのは「実装と仕様のどちらが正か」です — **`as-built`** は今動いているものを版として固定し、質問は数個と検収掃引1回で済みます。**`to-spec`** は作りかけのコードを仕様まで届かせます。
 
@@ -79,23 +79,21 @@ npm install
 
 `specs/` を書く前に行ってください。リポジトリに自分のコミットができた後で `.git` を捨てると、それも一緒に失われます。
 
-**どちらの経路でも、`/hora` の前に新しいリポジトリで `npm install` を実行してください。実行しなければ、走らせる `/hora` がそもそも存在しません。** このリポジトリは skill を1つだけ自分で持ちます（`kit/skills/` の `/hora-setup`）。agent は持ちません。`/hora` とそれが指揮する残り4つの skill は [`@openreachtech/hora`](https://github.com/openreachtech/hora-core) から、それらが委譲する手順は4つのスキルパッケージ [`-ort-core`](https://github.com/openreachtech/hora-skills-ort-core)・[`-ort-renchan`](https://github.com/openreachtech/hora-skills-ort-renchan)・[`-ort-furo`](https://github.com/openreachtech/hora-skills-ort-furo)・[`-ort-support`](https://github.com/openreachtech/hora-skills-ort-support) から来て、`postinstall` フックがそのすべてを、最後にこのリポジトリ自身のものを、`.claude/` に配置します。clone 直後の `.claude/` は、それが走るまで空です。
-
-3つ目のパッケージ `@openreachtech/hora-ecosystem` は、関所5が「新しく書く前に」確認するカタログです。どこにも配置されず、npm が置いた場所で読まれます。
+**どちらの経路でも、`/hn` の前に新しいリポジトリで `npm install` を実行してください。実行しなければ、走らせる `/hn` がそもそも存在しません。** skill と agent は `kit/skills/` と `kit/agents/` にあり、`postinstall` フックがそれらを、Claude Code が見る `.claude/` へコピーします。clone 直後の `.claude/` は、それが走るまで空です。詳しくは [`docs/skills.ja.md`](./docs/skills.ja.md) を参照してください。
 
 ### 2. 仕様書を書く
 
 ```
-/hora-spec
+/hn-spec
 ```
 
-`/hora-spec` が対話しながら書きます。 ステージ0で既にあるものを読み、空の仕様書をコピーし、7つのステージを順に進めます — まず想定ユースケース、次にこの版が載せるものと載せないもの、数値（非機能要件）、DB と API の設計、画面、セキュリティ、そして全体レビューです。**各節は書き込む前に全文を提示し、承認されてから書き込みます。** AI 自身が考えた内容は「提案」として明示されます。
+`/hn-spec` が対話しながら書きます。 ステージ0で既にあるものを読み、空の仕様書をコピーし、7つのステージを順に進めます — まず想定ユースケース、次にこの版が載せるものと載せないもの、数値（非機能要件）、DB と API の設計、画面、セキュリティ、そして全体レビューです。**各ステージは全体を下書きして一度だけ提示し、承認を得てから書き込みます。** AI 自身が考えた内容は「提案」として明示されるので、白紙に答えるのではなく下書きを直す作業になります。**1つの機能について尋ねるのは、全工程を通して最大3回**です。4回目が要るときは、その理由を書き残します。
 
 **すでに動くコードがあるプロジェクトでは、それを口述させられることはありません。** ステージ0がリポジトリと、あなたが指し示した文書を読み、そこに現れているものを草案に起こし、訂正できる形で返します — **「こう読み取りました。合っていますか」という確認としてであって、AI が決めた要件としてではありません。** 読んでも決まらないもの — その機能が誰のためか、本来誰がその操作を呼べるべきか、どこまでが完成か — は、材料を並べた上で何も推奨せずに尋ねられます。回答は可能な限り選択肢として提示されるので、**書き起こすより直すほうがはるかに多くなります。**
 
 **既存の文書がある場合は、実行前に入れておいてください。** 仕様**そのもの**（要件定義、API リファレンス）は `specs/1.0.0/sources/` へ、仕様を**説明するだけ**のもの（モックアップ、図、古い設計書）は `specs/1.0.0/annex/` へ。どちらも空で同梱済みで、必須ではありません。ステージ0 はファイルごとに尋ねる代わりに、その区別を確認します。詳細は `hora-core` の [`adopting.ja.md`](https://github.com/openreachtech/hora-core/blob/main/docs/adopting.ja.md) の手順2 にあります。
 
-**あるのが「欲しいもの」だけなら、それを `specs/1.0.0/request/` に置いてください** — メール、チケット、箇条書き1ページ、あなたの言葉のままで結構です。ステージ0 がこの版の議題として読み、7つのステージが節に起こして、1節ずつ承認を取ります。これも空で同梱済みで、中身がそれ自体で仕様テキストになることはなく、`/hora-plan` は読みません。
+**あるのが「欲しいもの」だけなら、それを `specs/1.0.0/request/` に置いてください** — メール、チケット、箇条書き1ページ、あなたの言葉のままで結構です。ステージ0 がこの版の議題として読み、7つのステージが節に起こして、1節ずつ承認を取ります。これも空で同梱済みで、中身がそれ自体で仕様テキストになることはなく、`/hn-plan` は読みません。
 
 手で書く方法も引き続き使えます。同じ書式の同じ文書になります。
 
@@ -103,29 +101,29 @@ npm install
 cp specs/skeleton/spec.md specs/1.0.0/spec.md
 ```
 
-[`specs/skeleton/spec.md`](./specs/skeleton/spec.md) は見出しと表のヘッダだけの空の仕様書です。`specs/skeleton/` は版ではないので、`/hora` が版として読むことはありません。
+[`specs/skeleton/spec.md`](./specs/skeleton/spec.md) は見出しと表のヘッダだけの空の仕様書です。`specs/skeleton/` は版ではないので、`/hn` が版として読むことはありません。
 
-[`spec-format.md`](https://github.com/openreachtech/hora-core/blob/main/kit/skills/hora/references/spec-format.md) は書式の説明です。各節が何のためにあるか、どれが必須か、何があると `/hora` が止まって尋ねるかが書かれています。**説明はそちらを読み、埋めるのは前者**という分担です。
+[`spec-format.md`](./kit/skills/hn/references/spec-format.md) は書式の説明です。各節が何のためにあるか、どれが必須か、何があると `/hn` が止まって尋ねるかが書かれています。**説明はそちらを読み、埋めるのは前者**という分担です。
 
-### 3. `/hora` を実行する
+### 3. `/hn` を実行する
 
-`/hora` は、その版の仕様書がまだ無ければ先に `/hora-spec` を動かし、続いてボイラープレートを取得し、対話しながら版の計画を立て、機能を1つずつ実装して検収します。答えが要るところで自ら止まります。プランナーはその場で尋ねますが、その場で答えられないものは `.hora/questions/` に書き出されるので、`specs/` を編集して `/hora` を再実行してください。
+`/hn` は、その版の仕様書がまだ無ければ先に `/hn-spec` を動かし、続いてボイラープレートを取得し、対話しながら版の計画を立て、**機能を2つずつ**実装して検収し、2つが揃った時点で1回だけ報告します。その間は黙って進みます。自ら止まるのは、進めない用件があるときだけです。プランナーはその場で尋ねますが（ステージ単位でまとめて）、その場で答えられないものは `.hora/questions/` に書き出されるので、`specs/` を編集して `/hn` を再実行してください。
 
-**通常の利用で打つコマンドは `/hora` だけです。** 各時点で何をしているのか、他の skill を直接呼びたい場合については `hora-core` の [`commands.ja.md`](https://github.com/openreachtech/hora-core/blob/main/docs/commands.ja.md) を参照してください。
+**通常の利用で打つコマンドは `/hn` だけです。** 各時点で何をしているのか、他の skill を直接呼びたい場合については `hora-core` の [`commands.ja.md`](https://github.com/openreachtech/hora-core/blob/main/docs/commands.ja.md) を参照してください。
 
 ### 推奨：仕様は対話で、実装は自動執行で
 
-**`/hora-spec` は付き添う価値があります。** 7つのステージはすべて対話で、各節は全文を提示してから承認を得て書き込み、AI 自身の提案が入るのもここです。仕様書が「機能名の一覧」で終わらなくなるのはこの段階であり、ここで注いだ注意が、18の関所が後で建てる土台になります。
+**`/hn-spec` は付き添う価値があります。** 7つのステージはすべて対話で、各ステージにつき1往復、全体を下書きして提示してから承認を得て書き込み、AI 自身の提案が入るのもここです。仕様書が「機能名の一覧」で終わらなくなるのはこの段階であり、ここで注いだ注意が、18の関所が後で建てる土台になります。
 
-**`/hora` 以降は、付きっきりにならずに走らせて構いません。** ボイラープレートの取得、計画、機能を関所に通すこと、検収の実行に、見張りは要りません。それが安全なのは設計のためです — **答えが要る実行は、決めずに止まります。** 対話の関所は人と決着をつけるために在り、サブエージェントに渡されることは決してありません。
+**`/hn` 以降は、付きっきりにならずに走らせて構いません。** ボイラープレートの取得、計画、機能を関所に通すこと、検収の実行に、見張りは要りません。それが安全なのは設計のためです — **答えが要る実行は、決めずに止まります。** 対話の関所は人と決着をつけるために在り、サブエージェントに渡されることは決してありません。
 
 | | |
 |---|---|
-| `/hora-spec` | **付き添う。** 7ステージの対話、節ごとの承認 |
-| `/hora-plan` | **質問には付き添う。** 仕様が未決のまま残した所を尋ね、承認された1編集ずつ書く |
-| `/hora-setup` / `/hora-build` / `/hora-accept` | **走らせておく。** やったことを報告し、必要になれば止まります |
+| `/hn-spec` | **付き添う。** 7ステージの対話、節ごとの承認 |
+| `/hn-plan` | **質問には付き添う。** 仕様が未決のまま残した所を尋ね、承認された1編集ずつ書く |
+| `/hn-setup` / `/hn-build` / `/hn-accept` | **走らせておく。** やったことを報告し、必要になれば止まります |
 
-**「自動執行」は「最後まで無人」ではありません。** その場で誰も答えられない質問は `.hora/questions/` に書き出され、答えるには `specs/` を編集して `/hora` を再実行します。それは失敗ではなく、通常の進み方です。
+**「自動執行」は「最後まで無人」ではありません。** その場で誰も答えられない質問は `.hora/questions/` に書き出され、答えるには `specs/` を編集して `/hn` を再実行します。それは失敗ではなく、通常の進み方です。
 
 ## 継続的インテグレーション
 
@@ -141,29 +139,29 @@ cp specs/skeleton/spec.md specs/1.0.0/spec.md
     runs-on: ubuntu-latest
 ```
 
-そして、その決定を `specs/<version>/spec.md` に記載してください。全員が — そして以後の `/hora` の実行が — ワークフローのファイルから推し量るのではなく、同じ記述を読むためです。
+そして、その決定を `specs/<version>/spec.md` に記載してください。全員が — そして以後の `/hn` の実行が — ワークフローのファイルから推し量るのではなく、同じ記述を読むためです。
 
 ## 使い方
 
-`/hora` はオーケストレーターです。実際の作業は5つの SKILL が行います。
+`/hn` はオーケストレーターです。実際の作業は5つの SKILL が行います。
 
 | SKILL | 役割 | 実行単位 |
 |---|---|---|
-| [`/hora-spec`](https://github.com/openreachtech/hora-core/blob/main/kit/skills/hora-spec/SKILL.md) | 既にあるものを読んだ上で、版の仕様書を対話しながら7つのステージで書く。1節ずつ承認を取って書き込む | 版ごとに1回 |
-| [`/hora-setup`](./docs/hora-setup.ja.md) | 仕様書が宣言したボイラープレートを取得し、案件用の値を埋め、実地に読む | 版ごとに1回 |
-| [`/hora-plan`](https://github.com/openreachtech/hora-core/blob/main/kit/skills/hora-plan/SKILL.md) | 版を確定し、対話しながら仕様を検証し、機能一覧を作る | 版ごとに1回 |
-| [`/hora-build`](https://github.com/openreachtech/hora-core/blob/main/kit/skills/hora-build/SKILL.md) | 1つの機能を18のチェックポイントで通す | 機能ごとに1回 |
-| [`/hora-accept`](https://github.com/openreachtech/hora-core/blob/main/kit/skills/hora-accept/SKILL.md) | その時点で実装済みの全機能に対して受入テストを実施する | 各機能の最終チェックポイント、および版全体の掃引 |
+| [`/hn-spec`](./kit/skills/hn-spec/SKILL.md) | 既にあるものを読んだ上で、版の仕様書を対話しながら7つのステージで書く。1ステージずつ承認を取って書き込む | 版ごとに1回 |
+| [`/hn-setup`](./kit/skills/hn-setup/SKILL.md) | 仕様書が宣言したボイラープレートを取得し、案件用の値を埋め、実地に読む | 版ごとに1回 |
+| [`/hn-plan`](./kit/skills/hn-plan/SKILL.md) | 版を確定し、対話しながら仕様を検証し、機能一覧を作る | 版ごとに1回 |
+| [`/hn-build`](./kit/skills/hn-build/SKILL.md) | 1つの機能を18のチェックポイントで通す | 機能ごとに1回 |
+| [`/hn-accept`](./kit/skills/hn-accept/SKILL.md) | その時点で実装済みの全機能に対して受入テストを実施する | 各機能の最終チェックポイント、および版全体の掃引 |
 
 ```
-/hora-spec ─> /hora-setup ─> /hora-plan ──┬─> /hora-build 機能A ─> /hora-accept ─┐
-                                          ├─> /hora-build 機能B ─> /hora-accept ─┤
-                                          └─> /hora-build 機能C ─> /hora-accept ─┴─> 全体掃引 ─> merge
+/hn-spec ─> /hn-setup ─> /hn-plan ──┬─> /hn-build #A ─> /hn-accept ─┐
+                                    ├─> /hn-build #B ─> /hn-accept ─┤
+                                    └─> /hn-build #C ─> /hn-accept ─┴─> sweep ─> merge
 ```
 
-**この線の上に乗らないコマンドが1つあります：`/hora-hotfix`。** `/hora` が決して起動しない唯一の skill です。何を緊急とするかを決めるのは、あなただからです。開いているリリースラインはそのままに `main` の上で作業し、`/hora` がそのリリースラインを結果の上に rebase します。経路の全体は `hora-core` の [`hotfix.ja.md`](https://github.com/openreachtech/hora-core/blob/main/docs/hotfix.ja.md) にあります。
+**この線の上に乗らないコマンドが1つあります：`/hn-hotfix`。** `/hn` が決して起動しない唯一の skill です。何を緊急とするかを決めるのは、あなただからです。開いているリリースラインはそのままに `main` の上で作業し、`/hn` がそのリリースラインを結果の上に rebase します。経路の全体は `hora-core` の [`hotfix.ja.md`](https://github.com/openreachtech/hora-core/blob/main/docs/hotfix.ja.md) にあります。
 
-ステージ0と7つの仕様ステージは [`stages.md`](https://github.com/openreachtech/hora-core/blob/main/kit/skills/hora-spec/references/stages.md) に、ステージ0が何を読んでよいかは [`investigation.md`](https://github.com/openreachtech/hora-core/blob/main/kit/skills/hora-spec/references/investigation.md) に、人への尋ね方は [`asking.md`](https://github.com/openreachtech/hora-core/blob/main/kit/skills/hora/references/asking.md) に、そこで適用される考え方 — ユースケースから始めること、1つの版に機能を詰め込みすぎないこと、ロールで切るかエンドポイントで切るか、同期処理か Worker か、認可を操作ごとに明記すること — は [`principles.md`](https://github.com/openreachtech/hora-core/blob/main/kit/skills/hora-spec/references/principles.md) にあります。
+ステージ0と7つの仕様ステージは [`stages.md`](./kit/skills/hn-spec/references/stages.md) に、ステージ0が何を読んでよいかは [`investigation.md`](./kit/skills/hn-spec/references/investigation.md) に、人への尋ね方は [`asking.md`](./kit/skills/hn/references/asking.md) に、そこで適用される考え方 — ユースケースから始めること、1つの版に機能を詰め込みすぎないこと、ロールで切るかエンドポイントで切るか、同期処理か Worker か、認可を操作ごとに明記すること — は [`principles.md`](./kit/skills/hn-spec/references/principles.md) にあります。
 
 ### 版を出した後に機能を足す
 
@@ -175,9 +173,9 @@ $EDITOR specs/1.1.0/request/csv-export.md   # 欲しいものを、自分の言�
 ```
 
 ```
-/hora-spec       そこから specs/1.1.0/spec.md を起こす — 差分なので、
+/hn-spec       そこから specs/1.1.0/spec.md を起こす — 差分なので、
                  文書情報と新しい機能だけ。他は書かない
-/hora            あとはいつもどおり
+/hn            あとはいつもどおり
 ```
 
 **`specs/1.1.0/spec.md` は 1.0.0 に対する差分です。** この版が変える節だけを書き、それ以外は「書かないこと」によって引き継がれ、**1.0.0 は決して書き換えません**。**空のスケルトンはコピーしません** — 機能を1つ足すだけの文書に、空の見出しが20個並ぶことになるからです。
@@ -186,24 +184,24 @@ $EDITOR specs/1.1.0/request/csv-export.md   # 欲しいものを、自分の言�
 
 **その前に、そもそも新しい版が要るかを決めてください。** 境界は変更の大きさではなく、**その版がリリース済みかどうか**です。`git tag -l '1.0.0'` が空なら `specs/1.0.0/` を直接編集してよく、版番号も変わりません。リリース済みなら手を触れず、次の版を始めます。新しい版番号の決め方を含む手順全体は `hora-core` の [`commands.ja.md`](https://github.com/openreachtech/hora-core/blob/main/docs/commands.ja.md) にあります。
 
-18のチェックポイントは [`checkpoints.md`](https://github.com/openreachtech/hora-core/blob/main/kit/skills/hora-build/references/checkpoints.md) にあります。仕様、想定ユースケース、DB / API スキーマ、stub API、実装に必要なモジュール、actual API、worker、セキュリティ検証、そしてフロントエンド、最後に検収です。
+18のチェックポイントは [`checkpoints.md`](./kit/skills/hn-build/references/checkpoints.md) にあります。仕様、想定ユースケース、DB / API スキーマ、stub API、実装に必要なモジュール、actual API、worker、セキュリティ検証、そしてフロントエンド、最後に検収です。
 
-**Hora Kit が持つのは「順序」と「関所」だけで、「やり方」は持ちません。** resolver / migration / コンポーネント / テストの書き方も、受入レビューが何を見るかも、すべて `@openreachtech/hora-skills-ort-*` パッケージ（ドメインごとに1つ）にあります。`npm install` がこのリポジトリの `.claude/skills/` に配置します。詳しくは [`docs/skills.ja.md`](./docs/skills.ja.md) を参照してください。
+**Hora Kit が持つのは「順序」と「関所」だけで、「やり方」はそこから切り離されています。** resolver / migration / コンポーネント / テストの書き方も、受入レビューが何を見るかも、すべて `kit/skills/` の `hoc-`/`hor-`/`hof-`/`hos-` スキルにあり、どの関所も名指しせず、実行時に description で突き合わせます。詳しくは [`docs/skills.ja.md`](./docs/skills.ja.md) を参照してください。
 
 ## ドキュメント
 
 | | |
 |---|---|
-| `hora-core` の [`quick-start.ja.md`](https://github.com/openreachtech/hora-core/blob/main/docs/quick-start.ja.md) | **クイックスタート — 仕様書を書き始めるまでの3手順。** 版の下にある3つの受け渡しディレクトリ、そこにファイルを置くことが何を言ったことになるのか、`/hora` がそれをどう扱うのか |
+| `hora-core` の [`quick-start.ja.md`](https://github.com/openreachtech/hora-core/blob/main/docs/quick-start.ja.md) | **クイックスタート — 仕様書を書き始めるまでの3手順。** 版の下にある3つの受け渡しディレクトリ、そこにファイルを置くことが何を言ったことになるのか、`/hn` がそれをどう扱うのか |
 | [`docs/architecture.ja.md`](./docs/architecture.ja.md) | **この boilerplate から作ったプロジェクトが持つもの。** 4つの層と各層の配布元、実行が埋めるディレクトリ、`.claude/` が生成物である理由、誰が何を書いてよいか。オーケストレーター自身の走り方は `hora-core` の [`architecture.ja.md`](https://github.com/openreachtech/hora-core/blob/main/docs/architecture.ja.md) |
 | `hora-core` の [`commands.ja.md`](https://github.com/openreachtech/hora-core/blob/main/docs/commands.ja.md) | **各コマンドの解説。** 読むもの / 書くもの / 止まる条件 / 単独実行。加えて実際のセッションの見え方 |
-| `hora-core` の [`hotfix.ja.md`](https://github.com/openreachtech/hora-core/blob/main/docs/hotfix.ja.md) | **緊急経路。** `/hora-hotfix` が `main` の上で何をするか、開いたままのリリースラインをどう戻すか |
+| `hora-core` の [`hotfix.ja.md`](https://github.com/openreachtech/hora-core/blob/main/docs/hotfix.ja.md) | **緊急経路。** `/hn-hotfix` が `main` の上で何をするか、開いたままのリリースラインをどう戻すか |
 | [`docs/skills.ja.md`](./docs/skills.ja.md) | **利用しているスキルの解説。** なぜ Hora Kit は手順を持たないのか、スキルはどう配られるのか、パッケージが覆う範囲 |
-| [`docs/hora-setup.ja.md`](./docs/hora-setup.ja.md) | **このリポジトリが自分で書く唯一の skill。** なぜキットではなくここにあるのか、何を読み書きするのか、どこで止まって尋ねるのか |
+| [`kit/skills/hn-setup/SKILL.md`](./kit/skills/hn-setup/SKILL.md) | **このリポジトリが自分で書く唯一の skill。** 何を作り、何を埋め、何を記録するのか、どこで止まって尋ねるのか（英語のみ） |
 | [`docs/stack/`](./docs/stack/README.ja.md) | **スタック・ハンドブック。** この boilerplate の技術スタックに固有のことすべて — origin カタログ、ミドルウェア、API 種別ごとの成果物 — を持ち、hora スキルが実行時に読む |
 | [`about-boilerplate.md`](./about-boilerplate.md) | **このテンプレート自身の版の記録** — プロジェクトがどの hora-boilerplate から始まったか。製品の版ではありません。製品の版は git タグが持ちます |
 
-規則そのものは、それを所有する skill 側にあります：[`hora/SKILL.md`](https://github.com/openreachtech/hora-core/blob/main/kit/skills/hora/SKILL.md)、[`structure.md`](https://github.com/openreachtech/hora-core/blob/main/kit/skills/hora/references/structure.md)、[`commits.md`](https://github.com/openreachtech/hora-core/blob/main/kit/skills/hora/references/commits.md)、[`done-criteria.md`](https://github.com/openreachtech/hora-core/blob/main/kit/skills/hora/references/done-criteria.md)、[`spec-format.md`](https://github.com/openreachtech/hora-core/blob/main/kit/skills/hora/references/spec-format.md)、[`stages.md`](https://github.com/openreachtech/hora-core/blob/main/kit/skills/hora-spec/references/stages.md)、[`principles.md`](https://github.com/openreachtech/hora-core/blob/main/kit/skills/hora-spec/references/principles.md)、[`checkpoints.md`](https://github.com/openreachtech/hora-core/blob/main/kit/skills/hora-build/references/checkpoints.md)。
+規則そのものは、それを所有する skill 側にあります：[`hora/SKILL.md`](./kit/skills/hn/SKILL.md)、[`structure.md`](./kit/skills/hn/references/structure.md)、[`commits.md`](./kit/skills/hn/references/commits.md)、[`done-criteria.md`](./kit/skills/hn/references/done-criteria.md)、[`spec-format.md`](./kit/skills/hn/references/spec-format.md)、[`stages.md`](./kit/skills/hn-spec/references/stages.md)、[`principles.md`](./kit/skills/hn-spec/references/principles.md)、[`checkpoints.md`](./kit/skills/hn-build/references/checkpoints.md)。
 
 ## コントリビューション
 
@@ -220,17 +218,21 @@ npm install
 npm run lint
 ```
 
-**`@openreachtech/*` の版を上げるときは、そのコマンドに限ってリリース経過日数の窓を外します。** `.npmrc` は `min-release-age = 7` を設定し、何も免除していません。そのため窓の内側で公開された版へ range を上げて解決すると、古い版で妥協するのではなく `ETARGET` で失敗します。`package.json` の range を上げたら、免除をコマンド自身に渡して lockfile を作り直してください。
+**依存の版を上げるときは、そのコマンドに限ってリリース経過日数の窓を外します。** `.npmrc` は `min-release-age = 7` を設定し、何も免除していません。そのため窓の内側で公開された版へ range を上げて解決すると、古い版で妥協するのではなく `ETARGET` で失敗します。`package.json` の range を上げたら、免除をコマンド自身に渡して lockfile を作り直してください。
 
 ```sh
-npm install --min-release-age-exclude="@openreachtech/*"
+npm install --min-release-age-exclude="<版を上げるパッケージ>"
 ```
 
 **ここだけです。`.npmrc` に戻してはいけません。** 常設の免除は、このリポジトリから作られる全てのリポジトリへ渡ります。そしてその免除が前に立つのは `postinstall` — 全ての clone で `hora:init` を走らせるフックです。他にこのフラグが要る場面はありません。`npm ci` と、コミット済みの `package-lock.json` を再利用する `npm install` は、窓に関わらず lock された版を入れます。
 
+**`@openreachtech/*` はもうその対象ではありません。** スキル、agent、共有 eslint 設定、エコシステム・カタログはすべて `kit/` に vendor されているので、それらを上げる作業は版の引き上げではなく upstream からのコピーです。
+
 **`docs/` 配下は全てペアです** — `x.md` と `x.ja.md`。片方を直したら、同じコミットでもう片方も直してください。同じことを言う文書が2つあれば、片方だけ更新された瞬間に食い違い、しかも古い方も権威ある文面のままです。
 
-**`.claude/` 配下は、ここでは編集しません。** `npm install` が配置する場所で、次の `npm install` が変更を上書きします。hora の skill や agent の修正は [`hora-core`](https://github.com/openreachtech/hora-core)、それらの委譲先である手順の修正は、そのドメインのスキルパッケージ [`hora-skills-ort-core`](https://github.com/openreachtech/hora-skills-ort-core)・[`hora-skills-ort-renchan`](https://github.com/openreachtech/hora-skills-ort-renchan)・[`hora-skills-ort-furo`](https://github.com/openreachtech/hora-skills-ort-furo)・[`hora-skills-ort-support`](https://github.com/openreachtech/hora-skills-ort-support) が置き場所です。いずれも英語のみ — 読み手が言語を選ぶ文書ではなく、Claude Code が読む文書だからです。従う文体は `hora-core` の [`writing-style.ja.md`](https://github.com/openreachtech/hora-core/blob/main/docs/writing-style.ja.md) にあります。
+**`.claude/` 配下は、ここでは編集しません。** それは `npm install` が書くコピーで、次の `npm install` が変更を上書きします。直すのは `kit/skills/` か `kit/agents/` のソースで、そのあと `npm run hora:init` を実行します。
+
+**これらのスキルは vendor されたものです。** [`hora-core`](https://github.com/openreachtech/hora-core) と4つの `hora-skills-ort-*` パッケージから取り込み、`/hn-*` に改名しました。したがって upstream はもう届きません — 向こうで出た修正は、手で持ってくるか、来ないかのどちらかです。いずれも英語のみ — 読み手が言語を選ぶ文書ではなく、Claude Code が読む文書だからです。従う文体は `hora-core` の [`writing-style.ja.md`](https://github.com/openreachtech/hora-core/blob/main/docs/writing-style.ja.md) にあります。
 
 ## ライセンス
 

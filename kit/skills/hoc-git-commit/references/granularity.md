@@ -1,0 +1,335 @@
+# Granularity (What Belongs in One Commit)
+
+Conventions for deciding which changes are staged together. Referenced from `SKILL.md`.
+
+This is decided **while working**, not at commit time. By the time the work is finished and
+the tree holds six unrelated edits, the cheap moment to have made the decision has passed.
+
+## Principle: one commit is one decision
+
+A commit is the unit a reviewer accepts or rejects. It should therefore contain **exactly one
+decision** — one behavior change, one rename, one new artifact — and everything required to
+make that decision coherent, and nothing else.
+
+Two consequences follow.
+
+- A reviewer who disagrees with one decision can reject that commit **without** undoing
+  unrelated work that happened to travel with it.
+- A later reader bisecting for a regression lands on a commit that changes **one** thing, so
+  the answer to "what broke it" is the commit itself, not a subset of it.
+
+## The one-line test
+
+A commit is scoped right when **one plain subject line states everything it does**. That one
+question runs in both directions.
+
+- **It lets a mixed-looking commit through.** Items resting on different justifications may
+  travel together, so long as one line takes them all without strain. What a commit holds is
+  one decision, and a decision often lands as a list.
+- **It turns away a commit that will not fit.** A subject that cannot be written in one line is
+  reporting that the changes beneath it never cohered into a decision — the line is long
+  because the commit is several.
+
+**Everything, or the line has not been written yet.** The question is not whether the subject
+fits one line; it is whether it fits once it has said all of what the commit did. A subject
+that fits by leaving something out has failed the test rather than passed it, and what it
+leaves out is reliably the part worth reviewing.
+
+```
+Bad: Move dist into Regenerable output and add coverage, tgz, eslintcache
+```
+
+That subject fits, and the commit under it also changed `dist/` to `/dist/` — an existing rule
+re-anchored to the repository root, and the only risky change on its branch. Nothing in the
+line points at it. Said as well, the subject runs past one line, which is the answer: the
+behavior change is its own commit.
+
+### The "and" test
+
+If an accurate subject line needs the word "and", the commit is two commits.
+
+```
+Bad:  Add LockEmployeeSignInInputValidator and tidy up an unrelated JSDoc typo
+Good: Add LockEmployeeSignInInputValidator
+      Tidy up the JSDoc of EmployeeSignInMutationResolver#resolve()
+```
+
+**Unless the two sides it joins belong to one decision.** The word is a symptom often enough to
+be worth noticing, and it settles nothing on its own.
+
+```
+Good: Add coverage, tgz and eslintcache to Regenerable output
+Good: Rename environment to Regenerable output and absorb Build output
+```
+
+The first is one decision — everything confirmed regenerable goes in — written as a list. The
+second is one structural change, where the rename and the absorption cannot be taken apart:
+half of it leaves a section named for what it no longer holds.
+
+The same applies to a subject that reaches for a vague umbrella noun to cover several
+changes — `Update auth handling`, `Various fixes`, `Cleanup`. The umbrella is the "and" in
+disguise, and it is also how a subject fits one line without saying everything.
+
+So `and` is a prompt to look, never the verdict. The verdict comes from the test it sits under.
+
+## Scale
+
+Keep commits small. **1 to 4 files** is the working range, and a single-file commit is a
+perfectly normal unit of work. A commit touching more than a handful of files is something to
+justify, not a default to settle into.
+
+Large commits are legitimate in a few cases — a mechanical rename across many files, a
+generated artifact, an initial scaffold. What makes them legitimate is that they are still
+**one decision**, and the reviewer only has to agree with that one decision once.
+
+## What to split
+
+| Split these apart | Why |
+| :-- | :-- |
+| Implementation and its tests | The test commit states what the implementation is expected to do, and reads as its own reviewable claim. Reviewing them separately keeps a weak test from being waved through on the strength of the code beside it. |
+| Refactor and behavior change | A refactor is reviewed by confirming behavior did **not** change. Mixed together, the reviewer cannot tell which lines were meant to alter behavior. |
+| Mechanical rename and logic edit | A rename is verified by scanning that it is uniform. One hand-edited line hidden among 200 renamed ones is invisible. |
+| Formatting or lint fixes and substance | Whitespace churn buries the two lines that matter. |
+| Dependency raises and code that uses them | The raise is a separate risk with a separate rollback. |
+| Generated artifacts (`package-lock.json`, generated types) and hand-written source | Generated diffs are large and unreviewable; keeping them separate keeps the source commit readable. |
+| Unrelated files that happen to be dirty | They are unrelated. This is the most common cause of an accidental umbrella commit. |
+
+Registering a new artifact in an index or export barrel is its own commit as well. Adding the
+class and exporting it are two decisions, and the export is the one with a public-surface
+consequence.
+
+**A class's tests are committed before its implementation.** The order is what makes the split
+worth having: the test commit states what the class is expected to do, and the implementation
+commit is the one that makes the statement true. Committed the other way round, the tests only
+confirm what already worked, and there is no commit at which the claim stands on its own to be
+reviewed. This is test-driven development written into the history rather than into the editor.
+
+### One module per commit, and its tests are a commit of their own
+
+**A new module never shares a commit with another module, and never shares one with its own
+tests. There is no exception to either.** One new class takes its tests, then its implementation,
+then its entry in the export barrel — three commits of its own, so two classes are six. This is
+the coding charter's *Keep Everything One by One* applied to history: a commit the reader has to
+pull two facts out of is the oversight trap the charter names, and the subject line is where the
+second fact goes missing.
+
+- **The separation is the only thing that lets anybody else check the test.** Checked out at the
+  test commit the suite runs red, and the commit after it is what turns green — so a reader
+  watches the test fail for the reason it exists, and then watches the implementation answer it,
+  at the cost of one `git checkout`. Folded into one commit, no such state exists anywhere in the
+  repository: there is nowhere to stand and see the test fail, so nothing distinguishes a test
+  that exercises the code from one that asserts nothing at all. Reconstructing the missing state
+  means resetting the commit and stripping the implementation back out of the diff by hand, every
+  time somebody wants to know. **A test nobody can watch fail is a test nobody has grounds to
+  trust**, and that — not tidiness — is what the split buys.
+- **The count is per file, not per folder.** Five route classes arriving in a package are five
+  `Declare` commits and five `Add tests for` commits, not one of each covering the set. The
+  collective subject that lets such a commit fit one line — `Declare the express routes`,
+  `Add tests for the express routes` — is the umbrella noun this file already turns away, and
+  the plural is precisely what hides the count from the reader.
+- **Size is not what the split is for.** Not a class of eight lines, not a subclass that
+  overrides nothing, not a pair of files small enough that separating them feels like ceremony.
+  What the split prevents is the reader's second extraction, and a small class costs that
+  extraction exactly as a large one does.
+- **Carrying a module in from elsewhere bundles nothing.** Migration is bracketed by the branch,
+  whose opening marker names the origin once; the commits beneath it are the ordinary `Declare`
+  and `Add tests for`, one apiece. That the files were copied in a single operation describes how
+  the work was done, which is the thing a subject never records. See the git branch convention.
+
+## What to keep together
+
+- A change and the **type annotations or JSDoc that describe it**. A signature and its
+  documented contract are one decision; splitting them leaves a commit whose documentation
+  contradicts its code.
+- A change and whatever is **required for the commit to hold together on its own** at that
+  point. If splitting would produce a commit that refers to something that is not there yet —
+  a call to a member the next commit defines, an import of a file it adds — the split is in the
+  wrong place. Find a different seam rather than committing the dangling reference.
+  - **A seam is not only a line between files. An order is a seam too.** One breaking order
+    proves nothing about the rest: the same change split the other way round often passes
+    through every intermediate state intact. Before concluding that no seam exists, reverse the
+    order and try again.
+  - **What counts as broken is what the work actually runs at that point, not everything that
+    could be run there.** A commit that would fail a command nobody issues between it and the
+    next one has not broken anything. Turning a check on before the entries that satisfy it are
+    recorded looks like the wrong order, and is the right one where the install that would trip
+    over it comes after both — the setting and its entries are configured together, and the
+    command runs once they are. Judging the seam against an imagined invocation rules out
+    orders that hold perfectly well, and pushes the split somewhere worse.
+  - **Take a removal apart from the outside in** — the callers first, then the registration,
+    then the thing itself. Each step deletes something nothing else points at any more, so no
+    intermediate state refers to what is gone. Going the other way breaks at the first commit,
+    which is what makes a removal look unsplittable when it is not.
+    - **A member's own tests are the exception, and they come out last.** The rule turns on
+      references that must not dangle, and a test's reference to what is gone does not break the
+      tree — it reports. Removing the implementation first is what makes it report: the suite
+      goes red, and the commit taking the tests out is the one that clears it again. Taken the
+      other way every step is green, so nothing distinguishes removing the right tests from
+      removing the wrong ones. What that proves, and where it fails hardest, is `hoc-jest`'s.
+  - Retiring a check that a CI workflow runs, an npm script registers, and a script file
+    implements is three commits, and taken in this order not one of them leaves a dangling
+    reference behind:
+
+    ```
+    Kick out the levers reference check from the CI workflow
+    Kick out check:levers from package.json
+    Purge scripts/check-levers.mjs
+    ```
+
+    The subjects come apart as cleanly as the commits do, because `SKILL.md` gives a removal
+    two verbs instead of one — `Kick out <what> from <where>` for the file that stays without
+    it, and `Purge <path>` for the file that goes. That pair is the tool for splitting one
+    removal across several commits; a single `Remove` would hide the seam it makes visible.
+- A rename and **every call site it touches**. Half a rename is a broken tree.
+- **One document's translations, where the edit is the same edit.** A `README.md` and its
+  `README.ja.md` carry one decision written twice, so a reviewer given them apart has to take
+  both or neither, and the split has bought nothing while doubling the commits. The subject
+  drops the extension and names the document: `Kick out the registry setting from README`.
+  - **What stays split is a different edit that happens to land in the same pair of files.**
+    Correcting a default that one example states wrongly, and supplying an option that another
+    example omits, are two decisions in both languages — that is two commits, each touching two
+    files, not one commit touching four.
+  - **What the rule bundles is a document, never an edit.** The same correction applied to two
+    documents is two commits, one per document. The pair it folds together is a document and its
+    translation, and nothing wider — a rule stated once in two origin documents is two decisions
+    that happen to read alike, not one decision written twice.
+    - **The subject is the mechanical tell.** The form above names *the* document, extension
+      dropped. A subject that cannot name one, and reaches for `and` to carry two, is describing
+      a commit this rule never licensed — and the `and` test above will not catch it, because a
+      list of documents reads exactly like the list one decision is allowed to land as.
+    - **An edit no document owns is the exception, and it gathers.** The same typo corrected in
+      four documents, a term respelt everywhere it appears, a moved link followed in each place
+      that pointed at it — the change belongs to none of them in particular, so a per-document
+      split costs four commits saying one thing and buys a reviewer nothing. The test is whether
+      a reviewer could accept it in one document and reject it in another: where they could not,
+      it is one decision, and the subject then names the edit rather than a document.
+
+## Order
+
+Splitting settles what each commit holds, not which one comes first. **The sequence is behavior
+change, then structural change, then addition.**
+
+- **A change to how an existing rule behaves leads the branch**, however small it is. One line
+  earns a commit of its own here. At the head it stands directly against the state it changed,
+  so a reviewer compares the two with nothing structural in between, and it reverts on its own
+  if the behavior turns out wrong.
+- **Structural change comes next** — a section renamed, two of them folded into one, a module
+  moved. It carries the tree from one shape to another and claims no new ground.
+- **Addition comes last**, into the shape that is settled by then.
+
+**What separates the three is nature, not size.** A single line that changes what an existing
+entry matches is a behavior change; a hundred lines of new entries are an addition. Ordering by
+how much a commit touches buries the one risky line in the middle of the branch, which is the
+one place it must not be.
+
+**An addition does not go inside a structural change.** A new section is structure rather than
+addition, so whatever belongs in it waits for a later commit. Filled as it is created, the
+structural change comes apart around its contents, and a reader watches the same shape being
+assembled twice.
+
+```
+Anchor dist to the repository root                                behavior
+Move .env into a new Secrets section                              structure
+Rename environment to Regenerable output and absorb Build output  structure
+Add coverage, tgz and eslintcache to Regenerable output           addition
+Add key and certificate patterns to Secrets                       addition
+```
+
+The first commit is one line of a `.gitignore`, and it leads because it is the only one that
+changes what an existing entry matches. The two `Add` commits fill sections the two structural
+commits put there, and they wait until both are in place.
+
+**A set of fields filled in one configuration file is ordered inside itself.** The sequence
+above ranks them all equally, because every one of them is an addition. Order them by what they
+depend on instead: the identifier the rest follow from first, the fields derived from it next,
+and the field nothing else decides last.
+
+```
+Fulfill name: in package.json                             the identifier
+Fulfill repository:, bugs: and homepage: in package.json  derived from it
+Fulfill description: in package.json                      decided on its own
+```
+
+**The derived fields travel together and the independent one does not.** Three URLs naming one
+repository are a single decision written as a list, which the one-line test lets through. A
+description is a judgement that could be accepted while those URLs are rejected, so it takes a
+commit of its own — and a subject reaching for an umbrella over all five, such as *fulfill the
+placeholders*, is the "and" in disguise that the test turns away.
+
+**A test and the implementation it covers are not ordered by this sequence.** The implementation
+is the behavior change, so the sequence would lead with it, and the rule that a class's tests are
+committed before its implementation says otherwise. That rule governs the pair; the sequence
+orders whatever else the line holds.
+
+So work that also brings the existing tests up to convention lands in three commits, with the
+behavior change last of the three:
+
+```
+Tidy up the existing test for <the class>    structure
+Update the test for <the class>              addition
+Update <the class>                           behavior
+```
+
+The middle commit is red where it sits, and that is what it is for — the claim stands there on
+its own, and the commit after it is the one that makes the claim true.
+
+**Coherence bounds the sequence.** Where this order would leave a commit referring to what is
+not there yet, the seam is what is wrong, not the order — find the seam first, and sequence
+what comes out of it.
+
+## Staging a mixed working tree
+
+When the tree already holds several unrelated changes, do not resolve it by committing
+everything at once.
+
+```bash
+git add -p            # stage one decision's hunks at a time
+git diff --cached     # confirm what is actually staged before committing
+git diff              # confirm what is being left for the next commit
+```
+
+- **Staging names its paths.** `git add -A`, `git add .`, `git add -u`, `git commit -a` and
+  every other spelling that stages without naming what it stages are not used — not once the
+  tree has been checked either, because the command carries no record of what it took. Untracked
+  scratch files, editor artifacts and `.env` variants are what it sweeps up, and a diff nobody
+  named is a commit nobody designed.
+- When hunks for two decisions are interleaved in the same file, stage the first, commit, and
+  then stage the second. `git add -p` splits hunks with `s` and edits them with `e`.
+
+## Anti-patterns
+
+- **Checkpoint commits.** `wip`, `save progress`, `saving` — a commit holding real changes
+  whose message records that time passed rather than what changed. If a checkpoint is needed
+  mid-work, use `git stash` or a local branch, and squash before the work is shared.
+  - This does **not** apply to the branch-opening `Start …` marker, which the git branch
+    convention describes. That commit is deliberately empty, so it makes no claim about
+    granularity at all — there is no change in it to have scoped correctly.
+  - Nor to the `Merge …` commit that closes a branch. It carries no change of its own either.
+    What a reviewer weighs there is the branch it brings in, and that was already scoped commit
+    by commit inside the branch.
+  - Nor to a commit made **on the premise that it is deleted right away** — a save point taken
+    only so that an operation needing a clean tree can run, undone by `git reset --soft`, by
+    `git commit --amend`, or by a squash the moment it has served that purpose. **Its message
+    is free.** Every convention on a subject exists to tell a later reader what changed, and
+    this commit is gone before there is one: `saving-20260821-1530` is as good a subject as
+    any, no verb from the vocabulary in `SKILL.md` has to fit it, and the changes in it are
+    left undivided.
+    - **The premise is what buys the freedom, so the premise has to hold.** A commit still
+      there when the work is shared was never one of these, whatever was intended when it was
+      made. Delete it before the branch goes out, or write it as any other commit.
+- **A change the same work is about to take away.** A commit that writes something a later
+  commit in the same line removes has recorded a state nobody will ever want, and whoever
+  bisects through it is reading a decision that was never taken. **The check is mechanical: for
+  each commit, ask whether its diff is still there at the tip.** In one measured case a commit
+  had rewritten a block of configuration that a commit two further on deleted outright — not one
+  line of what it wrote survived, and the whole of it was churn.
+  - The fix is to cut the line again, not to add a commit that corrects it. That is available
+    only while the commits are unshared, which the git branch convention bounds.
+- **End-of-day dumps.** A single commit holding everything touched since morning is the
+  default outcome of never deciding granularity. Decide it while working.
+- **Typo-fix follow-ups on unpushed work.** A `Fix typo` commit immediately after the commit
+  that introduced the typo is noise. Fold it in with `git commit --amend` — but only while
+  the commit is **unpushed**. Once pushed, a separate fix commit is correct.
+- **Splitting past the point of coherence.** A commit left referring to what is not there yet,
+  so that the "one decision" rule could be honored more purely, has traded a real property for
+  a cosmetic one.
